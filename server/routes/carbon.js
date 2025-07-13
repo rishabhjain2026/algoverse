@@ -49,6 +49,37 @@ const calculateCarbonAmount = (category, type, amount) => {
   if (!categoryFactors) return 0;
   
   const factor = categoryFactors[type] || 0;
+  
+  // For sustainable transportation choices, calculate savings compared to car
+  if (category === 'transportation') {
+    const carFactor = categoryFactors.car || 0.2; // Default car emission factor
+    
+    if (type === 'bike' || type === 'walk') {
+      // These are carbon-free, so savings = what a car would have emitted
+      return -(carFactor * amount);
+    } else if (type === 'bus' || type === 'train') {
+      // Calculate savings compared to car
+      const carEmission = carFactor * amount;
+      const publicEmission = factor * amount;
+      return carEmission - publicEmission; // Positive if car is worse, negative if public transport is better
+    }
+  }
+  
+  // For waste recycling, calculate savings
+  if (category === 'waste' && type === 'recyclable') {
+    const generalWasteFactor = categoryFactors.general || 0.5;
+    const recyclableFactor = factor;
+    const savings = generalWasteFactor - recyclableFactor;
+    return -(savings * amount); // Negative because it's a saving
+  }
+  
+  if (category === 'waste' && type === 'compost') {
+    const generalWasteFactor = categoryFactors.general || 0.5;
+    const compostFactor = factor;
+    const savings = generalWasteFactor - compostFactor;
+    return -(savings * amount); // Negative because it's a saving
+  }
+  
   return factor * amount;
 };
 

@@ -14,7 +14,7 @@ import {
   Trash2,
   Plus
 } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 
 const categoryIcons = {
   transportation: Car,
@@ -32,6 +32,8 @@ const categoryColors = {
   waste: '#EF4444'
 }
 
+
+
 export default function Dashboard() {
   const { stats, activities, categoryBreakdown, recentActivities, loading, fetchStats, fetchActivities } = useCarbonStore()
   const { user } = useAuthStore()
@@ -45,19 +47,6 @@ export default function Dashboard() {
       fetchActivities()
     }
   }, [selectedPeriod, fetchStats, fetchActivities, user?._id])
-
-
-
-  // Generate sample chart data
-  const chartData = [
-    { day: 'Mon', emitted: 12.5, saved: 8.2 },
-    { day: 'Tue', emitted: 15.3, saved: 10.1 },
-    { day: 'Wed', emitted: 11.8, saved: 12.5 },
-    { day: 'Thu', emitted: 13.2, saved: 9.8 },
-    { day: 'Fri', emitted: 16.7, saved: 11.3 },
-    { day: 'Sat', emitted: 14.1, saved: 13.7 },
-    { day: 'Sun', emitted: 10.9, saved: 15.2 },
-  ]
 
   // Transform category breakdown for pie chart
   const pieChartData = categoryBreakdown.map((item) => ({
@@ -165,73 +154,32 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Line Chart */}
-        <div className="card">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-carbon-800">Weekly Progress</h3>
-            <select
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="input-field w-auto"
-            >
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-              <option value="year">This Year</option>
-            </select>
-          </div>
+      {/* Pie Chart */}
+      <div className="card">
+        <h3 className="text-lg font-semibold text-carbon-800 mb-6">Category Breakdown</h3>
+        {pieChartData.length > 0 ? (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="day" />
-              <YAxis />
+            <PieChart>
+              <Pie
+                data={pieChartData}
+                cx="50%"
+                cy="50%"
+                outerRadius={80}
+                dataKey="value"
+                label={({ name, value }) => `${name}: ${value.toFixed(1)}kg`}
+              >
+                {pieChartData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
               <Tooltip />
-              <Line 
-                type="monotone" 
-                dataKey="emitted" 
-                stroke="#EF4444" 
-                strokeWidth={2}
-                name="Emitted"
-              />
-              <Line 
-                type="monotone" 
-                dataKey="saved" 
-                stroke="#10B981" 
-                strokeWidth={2}
-                name="Saved"
-              />
-            </LineChart>
+            </PieChart>
           </ResponsiveContainer>
-        </div>
-
-        {/* Pie Chart */}
-        <div className="card">
-          <h3 className="text-lg font-semibold text-carbon-800 mb-6">Category Breakdown</h3>
-          {pieChartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieChartData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={80}
-                  dataKey="value"
-                  label={({ name, value }) => `${name}: ${value.toFixed(1)}kg`}
-                >
-                  {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-64 text-carbon-500">
-              <p>No data available yet. Start adding activities!</p>
-            </div>
-          )}
-        </div>
+        ) : (
+          <div className="flex items-center justify-center h-64 text-carbon-500">
+            <p>No data available yet. Start adding activities!</p>
+          </div>
+        )}
       </div>
 
       {/* Recent Activities */}

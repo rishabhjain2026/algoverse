@@ -126,9 +126,27 @@ export default function Calculator() {
     const factor = emissionFactors[selectedCategory][formData.type] || 0
     const amount = parseFloat(formData.amount) || 0
     
-    // For sustainable choices (bike, walk, etc.), return negative value
-    if (['bike', 'walk'].includes(formData.type)) {
-      return -factor * amount
+    // For sustainable transportation choices, calculate savings compared to car
+    if (selectedCategory === 'transportation') {
+      const carFactor = emissionFactors.transportation.car || 0.2
+      
+      if (formData.type === 'bike' || formData.type === 'walk') {
+        // These are carbon-free, so savings = what a car would have emitted
+        return -(carFactor * amount)
+      } else if (formData.type === 'bus' || formData.type === 'train') {
+        // Calculate savings compared to car
+        const carEmission = carFactor * amount
+        const publicEmission = factor * amount
+        return carEmission - publicEmission
+      }
+    }
+    
+    // For waste recycling, calculate savings
+    if (selectedCategory === 'waste' && (formData.type === 'recyclable' || formData.type === 'compost')) {
+      const generalWasteFactor = emissionFactors.waste.general || 0.5
+      const currentFactor = factor
+      const savings = generalWasteFactor - currentFactor
+      return -(savings * amount)
     }
     
     return factor * amount

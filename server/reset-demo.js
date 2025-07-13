@@ -7,32 +7,41 @@ import CarbonActivity from './models/CarbonActivity.js';
 // Load environment variables
 dotenv.config({ path: './config.env' });
 
-async function setupDemo() {
+async function resetDemo() {
   try {
     // Connect to MongoDB
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('✅ Connected to MongoDB');
 
-    // Check if demo user already exists
-    const existingUser = await User.findOne({ email: 'demo@ecotracker.com' });
+    // Delete existing demo user and all related data
+    const demoUser = await User.findOne({ email: 'demo@ecotracker.com' });
     
-    if (existingUser) {
-      console.log('Demo user already exists');
-      return;
+    if (demoUser) {
+      // Delete all activities for demo user
+      await CarbonActivity.deleteMany({ user: demoUser._id });
+      console.log('✅ Deleted existing demo activities');
+      
+      // Delete user stats
+      await UserStats.deleteOne({ user: demoUser._id });
+      console.log('✅ Deleted existing demo user stats');
+      
+      // Delete demo user
+      await User.deleteOne({ _id: demoUser._id });
+      console.log('✅ Deleted existing demo user');
     }
 
-    // Create demo user
-    const demoUser = await User.create({
+    // Create new demo user
+    const newDemoUser = await User.create({
       name: 'Demo User',
       email: 'demo@ecotracker.com',
       password: 'demo123'
     });
 
-    console.log('✅ Demo user created:', demoUser.email);
+    console.log('✅ New demo user created:', newDemoUser.email);
 
     // Create demo user stats
     await UserStats.create({
-      user: demoUser._id,
+      user: newDemoUser._id,
       totalEmitted: 0,
       totalSaved: 0,
       netFootprint: 0,
@@ -43,10 +52,10 @@ async function setupDemo() {
 
     console.log('✅ Demo user stats created');
 
-    // Add some sample activities for the demo user
+    // Add sample activities with proper savings calculations
     const sampleActivities = [
       {
-        user: demoUser._id,
+        user: newDemoUser._id,
         category: 'transportation',
         type: 'bike',
         amount: 10,
@@ -56,7 +65,7 @@ async function setupDemo() {
         date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
       },
       {
-        user: demoUser._id,
+        user: newDemoUser._id,
         category: 'transportation',
         type: 'bus',
         amount: 15,
@@ -66,7 +75,7 @@ async function setupDemo() {
         date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
       },
       {
-        user: demoUser._id,
+        user: newDemoUser._id,
         category: 'transportation',
         type: 'walk',
         amount: 3,
@@ -76,7 +85,7 @@ async function setupDemo() {
         date: new Date()
       },
       {
-        user: demoUser._id,
+        user: newDemoUser._id,
         category: 'food',
         type: 'vegetables',
         amount: 2,
@@ -86,7 +95,7 @@ async function setupDemo() {
         date: new Date()
       },
       {
-        user: demoUser._id,
+        user: newDemoUser._id,
         category: 'energy',
         type: 'electricity',
         amount: 5,
@@ -96,7 +105,7 @@ async function setupDemo() {
         date: new Date()
       },
       {
-        user: demoUser._id,
+        user: newDemoUser._id,
         category: 'waste',
         type: 'recyclable',
         amount: 2,
@@ -108,11 +117,11 @@ async function setupDemo() {
     ];
 
     await CarbonActivity.insertMany(sampleActivities);
-    console.log('✅ Sample activities created');
+    console.log('✅ Sample activities created with proper savings calculations');
 
-    // Update user stats with the new activities
+    // Calculate and update user stats
     const stats = await CarbonActivity.aggregate([
-      { $match: { user: demoUser._id } },
+      { $match: { user: newDemoUser._id } },
       {
         $group: {
           _id: null,
@@ -152,7 +161,7 @@ async function setupDemo() {
 
     // Update user stats
     await UserStats.findOneAndUpdate(
-      { user: demoUser._id },
+      { user: newDemoUser._id },
       {
         totalEmitted: result.totalEmitted,
         totalSaved: result.totalSaved,
@@ -166,18 +175,21 @@ async function setupDemo() {
 
     console.log('✅ Demo user stats updated with activities');
     console.log(`📊 Demo user stats: ${points} points, Rank ${rank}`);
+    console.log(`💰 Total Emitted: ${result.totalEmitted.toFixed(1)} kg CO2`);
+    console.log(`🌱 Total Saved: ${result.totalSaved.toFixed(1)} kg CO2`);
+    console.log(`📈 Net Footprint: ${netFootprint.toFixed(1)} kg CO2`);
 
-    console.log('🎉 Demo setup completed successfully!');
+    console.log('🎉 Demo reset completed successfully!');
     console.log('You can now login with:');
     console.log('Email: demo@ecotracker.com');
     console.log('Password: demo123');
 
   } catch (error) {
-    console.error('❌ Setup error:', error);
+    console.error('❌ Reset error:', error);
   } finally {
     await mongoose.disconnect();
     console.log('Disconnected from MongoDB');
   }
 }
 
-setupDemo(); 
+resetDemo(); 
