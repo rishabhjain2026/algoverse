@@ -118,7 +118,7 @@ export default function Dashboard() {
           className="btn-primary flex items-center space-x-2 mt-4 sm:mt-0"
         >
           <Plus className="w-4 h-4" />
-          <span>Add Activity</span>
+          <span>Emission Calculator</span>
         </button>
       </div>
 
@@ -162,23 +162,6 @@ export default function Dashboard() {
             </div>
             <div className="p-3 bg-primary-100 rounded-full">
               <Target className="w-6 h-6 text-primary-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-carbon-600">Your Rank</p>
-              <p className="text-2xl font-bold text-primary-600">
-                #{stats.rank}
-              </p>
-              <p className="text-sm text-carbon-500">
-                {getRankTitle(stats.rank)}
-              </p>
-            </div>
-            <div className="p-3 bg-yellow-100 rounded-full">
-              <Award className="w-6 h-6 text-yellow-600" />
             </div>
           </div>
         </div>

@@ -289,6 +289,9 @@ router.get('/stats', protect, async (req, res) => {
   try {
     const { period = 'all' } = req.query;
 
+    // Update user stats first to ensure they're current
+    await updateUserStats(req.user._id);
+
     // Get user stats
     let userStats = await UserStats.findOne({ user: req.user._id });
     
