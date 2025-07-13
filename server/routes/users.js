@@ -57,19 +57,12 @@ router.get('/leaderboard', async (req, res) => {
           avatar: 1,
           points: '$stats.points',
           totalSaved: '$stats.totalSaved',
-          rank: '$stats.rank',
           tier: '$stats.tier',
-          rankTitle: '$stats.rankTitle'
+          streak: '$stats.streak.current'
         }
       },
       {
         $sort: { points: -1, totalSaved: -1 }
-      },
-      {
-        $skip: (page - 1) * limit
-      },
-      {
-        $limit: parseInt(limit)
       }
     ];
 
@@ -91,7 +84,21 @@ router.get('/leaderboard', async (req, res) => {
       });
     }
 
-    const leaderboard = await User.aggregate(pipeline);
+    // Get all users for ranking calculation
+    const allUsers = await User.aggregate(pipeline);
+    
+    // Calculate proper rankings
+    const leaderboard = allUsers.map((user, index) => ({
+      ...user,
+      rank: index + 1,
+      badge: getBadgeByPoints(user.points),
+      avatar: user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'
+    }));
+
+    // Apply pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + parseInt(limit);
+    const paginatedLeaderboard = leaderboard.slice(startIndex, endIndex);
 
     // Get total count for pagination
     const totalPipeline = [
@@ -140,7 +147,7 @@ router.get('/leaderboard', async (req, res) => {
     res.json({
       success: true,
       data: {
-        leaderboard,
+        leaderboard: paginatedLeaderboard,
         pagination: {
           currentPage: parseInt(page),
           totalPages: Math.ceil(total / limit),
@@ -157,6 +164,16 @@ router.get('/leaderboard', async (req, res) => {
     });
   }
 });
+
+// Helper function to get badge by points
+function getBadgeByPoints(points) {
+  if (points >= 1000) return 'Eco Master';
+  if (points >= 500) return 'Green Champion';
+  if (points >= 250) return 'Sustainability Expert';
+  if (points >= 100) return 'Eco Warrior';
+  if (points >= 50) return 'Green Beginner';
+  return 'Newcomer';
+}
 
 // @desc    Get user ranking
 // @route   GET /api/users/ranking/:userId
@@ -177,27 +194,25 @@ router.get('/ranking/:userId', protect, async (req, res) => {
       });
     }
 
-    // Get user's position in leaderboard
-    const position = await UserStats.countDocuments({
-      points: { $gt: userStats.points }
-    });
+    // Get all users sorted by points to calculate proper position
+    const allUsers = await UserStats.find({})
+      .sort({ points: -1, totalSaved: -1 })
+      .populate('user', 'name email avatar');
+
+    // Find user's position
+    const userPosition = allUsers.findIndex(user => user.user._id.toString() === userId) + 1;
 
     // Get nearby users (5 above and 5 below)
-    const nearbyUsers = await UserStats.find({
-      points: {
-        $gte: userStats.points - 50,
-        $lte: userStats.points + 50
-      }
-    })
-    .sort({ points: -1 })
-    .limit(11)
-    .populate('user', 'name email avatar');
+    const userIndex = allUsers.findIndex(user => user.user._id.toString() === userId);
+    const startIndex = Math.max(0, userIndex - 5);
+    const endIndex = Math.min(allUsers.length, userIndex + 6);
+    const nearbyUsers = allUsers.slice(startIndex, endIndex);
 
     res.json({
       success: true,
       data: {
         userStats,
-        position: position + 1,
+        position: userPosition,
         nearbyUsers
       }
     });

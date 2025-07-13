@@ -73,15 +73,14 @@ export default function Layout({ children }) {
       </div>
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
-        <div className="flex flex-col flex-grow bg-white shadow-xl">
-          <div className="flex items-center p-6 border-b border-carbon-200">
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col bg-green-700">
+        <div className="flex flex-col flex-grow h-full">
+          <div className="flex items-center p-6 border-b border-green-800">
             <div className="flex items-center space-x-2">
-              <Leaf className="w-8 h-8 text-primary-600" />
-              <span className="text-xl font-bold text-carbon-800">EcoTracker</span>
+              <Leaf className="w-8 h-8 text-white" />
+              <span className="text-xl font-bold text-white">Carbon Tracker</span>
             </div>
           </div>
-          
           <nav className="flex-1 p-6 space-y-2">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href
@@ -89,37 +88,36 @@ export default function Layout({ children }) {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors font-medium ${
                     isActive
-                      ? 'bg-primary-100 text-primary-700 border-r-2 border-primary-500'
-                      : 'text-carbon-600 hover:bg-carbon-100'
+                      ? 'bg-green-600 text-white border-r-4 border-yellow-400'
+                      : 'text-white hover:bg-green-600 hover:text-yellow-200'
                   }`}
                 >
                   <item.icon className="w-5 h-5" />
-                  <span className="font-medium">{item.name}</span>
+                  <span>{item.name}</span>
                 </Link>
               )
             })}
           </nav>
-
           {/* User section */}
-          <div className="p-6 border-t border-carbon-200">
+          <div className="p-6 border-t border-green-800">
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-primary-600" />
+              <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-carbon-800 truncate">
+                <p className="text-sm font-medium text-white truncate">
                   {user?.name || 'User'}
                 </p>
-                <p className="text-xs text-carbon-500 truncate">
+                <p className="text-xs text-green-200 truncate">
                   {user?.email || 'user@example.com'}
                 </p>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-carbon-600 hover:bg-carbon-100 rounded-lg transition-colors"
+              className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-white hover:bg-green-600 rounded-lg transition-colors"
             >
               <LogOut className="w-4 h-4" />
               <span>Sign Out</span>

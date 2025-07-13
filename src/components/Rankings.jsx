@@ -156,11 +156,12 @@ export default function Rankings() {
   console.log('User stats:', stats)
   
   const currentUserRank = leaderboard.find(entry => entry.name === user?.name) || {
-    rank: stats.rank,
+    rank: leaderboard.length + 1, // Default to last position if not found
     points: stats.points,
     carbonSaved: stats.totalSaved,
     badge: getBadgeByPoints(stats.points),
-    tier: getTierByPoints(stats.points)
+    tier: getTierByPoints(stats.points),
+    streak: 0
   }
   
   console.log('Current user rank:', currentUserRank)
