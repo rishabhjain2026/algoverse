@@ -17,6 +17,8 @@ export const useCarbonStore = create(
         tier: 'Bronze'
       },
       categoryBreakdown: [],
+      emissionsBreakdown: [],
+      savingsBreakdown: [],
       recentActivities: [],
       loading: false,
       error: null,
@@ -97,7 +99,7 @@ export const useCarbonStore = create(
         try {
           console.log('CarbonStore: Fetching stats for period:', period)
           const response = await api.getStats(period)
-          const { stats, categoryBreakdown, recentActivities } = response.data
+          const { stats, categoryBreakdown, emissionsBreakdown, savingsBreakdown, recentActivities } = response.data
           
           console.log('CarbonStore: Received stats:', stats)
           console.log('CarbonStore: Received activities count:', recentActivities?.length || 0)
@@ -112,6 +114,8 @@ export const useCarbonStore = create(
               tier: 'Bronze'
             },
             categoryBreakdown: categoryBreakdown || [],
+            emissionsBreakdown: emissionsBreakdown || [],
+            savingsBreakdown: savingsBreakdown || [],
             recentActivities: recentActivities || [],
             loading: false
           })

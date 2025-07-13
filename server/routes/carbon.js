@@ -320,7 +320,33 @@ router.get('/stats', protect, async (req, res) => {
       periodQuery.date = { $gte: yearAgo };
     }
 
-    // Get category breakdown
+    // Get category breakdown for emissions (positive values)
+    const emissionsBreakdown = await CarbonActivity.aggregate([
+      { $match: { user: req.user._id, carbonAmount: { $gt: 0 }, ...periodQuery } },
+      {
+        $group: {
+          _id: '$category',
+          total: { $sum: '$carbonAmount' },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { total: -1 } }
+    ]);
+
+    // Get category breakdown for savings (negative values)
+    const savingsBreakdown = await CarbonActivity.aggregate([
+      { $match: { user: req.user._id, carbonAmount: { $lt: 0 }, ...periodQuery } },
+      {
+        $group: {
+          _id: '$category',
+          total: { $sum: { $abs: '$carbonAmount' } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { total: -1 } }
+    ]);
+
+    // Keep the original category breakdown for backward compatibility
     const categoryBreakdown = await CarbonActivity.aggregate([
       { $match: { user: req.user._id, ...periodQuery } },
       {
@@ -343,6 +369,8 @@ router.get('/stats', protect, async (req, res) => {
       data: {
         stats: userStats,
         categoryBreakdown,
+        emissionsBreakdown,
+        savingsBreakdown,
         recentActivities
       }
     });

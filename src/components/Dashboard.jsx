@@ -35,7 +35,7 @@ const categoryColors = {
 
 
 export default function Dashboard() {
-  const { stats, activities, categoryBreakdown, recentActivities, loading, fetchStats, fetchActivities } = useCarbonStore()
+  const { stats, activities, categoryBreakdown, emissionsBreakdown, savingsBreakdown, recentActivities, loading, fetchStats, fetchActivities } = useCarbonStore()
   const { user } = useAuthStore()
   const [selectedPeriod, setSelectedPeriod] = useState('week')
   const [showAddModal, setShowAddModal] = useState(false)
@@ -48,7 +48,37 @@ export default function Dashboard() {
     }
   }, [selectedPeriod, fetchStats, fetchActivities, user?._id])
 
-  // Transform category breakdown for pie chart
+  // Create emissions breakdown by category
+  const emissionsChartData = emissionsBreakdown.length > 0 
+    ? emissionsBreakdown.map((item) => ({
+        name: item._id.charAt(0).toUpperCase() + item._id.slice(1),
+        value: item.total,
+        color: categoryColors[item._id] || '#6B7280'
+      }))
+    : [
+        {
+          name: 'No Emissions',
+          value: 0,
+          color: '#6B7280'
+        }
+      ]
+
+  // Create savings breakdown by category
+  const savingsChartData = savingsBreakdown.length > 0 
+    ? savingsBreakdown.map((item) => ({
+        name: item._id.charAt(0).toUpperCase() + item._id.slice(1),
+        value: item.total,
+        color: categoryColors[item._id] || '#6B7280'
+      }))
+    : [
+        {
+          name: 'No Savings',
+          value: 0,
+          color: '#6B7280'
+        }
+      ]
+
+  // Keep original for backward compatibility
   const pieChartData = categoryBreakdown.map((item) => ({
     name: item._id.charAt(0).toUpperCase() + item._id.slice(1),
     value: item.total,
@@ -154,32 +184,65 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Pie Chart */}
-      <div className="card">
-        <h3 className="text-lg font-semibold text-carbon-800 mb-6">Category Breakdown</h3>
-        {pieChartData.length > 0 ? (
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={pieChartData}
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                dataKey="value"
-                label={({ name, value }) => `${name}: ${value.toFixed(1)}kg`}
-              >
-                {pieChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="flex items-center justify-center h-64 text-carbon-500">
-            <p>No data available yet. Start adding activities!</p>
-          </div>
-        )}
+
+
+      {/* Two Pie Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Emissions Pie Chart */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-carbon-800 mb-6">Carbon Emissions by Category</h3>
+          {emissionsBreakdown.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={emissionsChartData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: ${value.toFixed(1)}kg`}
+                >
+                  {emissionsChartData.map((entry, index) => (
+                    <Cell key={`emissions-cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-carbon-500">
+              <p>No emissions recorded yet</p>
+            </div>
+          )}
+        </div>
+
+        {/* Savings Pie Chart */}
+        <div className="card">
+          <h3 className="text-lg font-semibold text-carbon-800 mb-6">Carbon Savings by Category</h3>
+          {savingsBreakdown.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={savingsChartData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="value"
+                  label={({ name, value }) => `${name}: ${value.toFixed(1)}kg`}
+                >
+                  {savingsChartData.map((entry, index) => (
+                    <Cell key={`savings-cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-carbon-500">
+              <p>No savings recorded yet</p>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Recent Activities */}
