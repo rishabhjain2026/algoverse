@@ -76,7 +76,7 @@ export default function Dashboard() {
           value: 0,
           color: '#6B7280'
         }
-      ]
+  ]
 
   // Keep original for backward compatibility
   const pieChartData = categoryBreakdown.map((item) => ({
@@ -175,7 +175,7 @@ export default function Dashboard() {
         <div className="card">
           <h3 className="text-lg font-semibold text-carbon-800 mb-6">Carbon Emissions by Category</h3>
           {emissionsBreakdown.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
                   data={emissionsChartData}
@@ -189,9 +189,9 @@ export default function Dashboard() {
                     <Cell key={`emissions-cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+              <Tooltip />
               </PieChart>
-            </ResponsiveContainer>
+          </ResponsiveContainer>
           ) : (
             <div className="flex items-center justify-center h-64 text-carbon-500">
               <p>No emissions recorded yet</p>
