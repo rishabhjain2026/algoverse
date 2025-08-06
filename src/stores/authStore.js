@@ -15,27 +15,26 @@ export const useAuthStore = create(
       login: async (credentials) => {
         set({ loading: true, error: null })
         try {
-          const response = await api.login(credentials)
-          const { user, token } = response.data
-          
+          // ✅ Directly get response object (not response.data)
+          const { user, token } = await api.login(credentials)
+
           localStorage.setItem('token', token)
-          
+
           // Set current user in carbon store and force refresh
           const carbonStore = useCarbonStore.getState()
           carbonStore.setCurrentUser(user._id)
-          // Force a small delay to ensure data is cleared before fetching
           setTimeout(() => {
             carbonStore.fetchStats()
             carbonStore.fetchActivities()
           }, 100)
-          
+
           set({
             user,
             token,
             isAuthenticated: true,
             loading: false
           })
-          
+
           return { success: true }
         } catch (error) {
           set({
@@ -49,27 +48,26 @@ export const useAuthStore = create(
       register: async (userData) => {
         set({ loading: true, error: null })
         try {
-          const response = await api.register(userData)
-          const { user, token } = response.data
-          
+          // ✅ Directly get response object (not response.data)
+          const { user, token } = await api.register(userData)
+
           localStorage.setItem('token', token)
-          
+
           // Set current user in carbon store and force refresh
           const carbonStore = useCarbonStore.getState()
           carbonStore.setCurrentUser(user._id)
-          // Force a small delay to ensure data is cleared before fetching
           setTimeout(() => {
             carbonStore.fetchStats()
             carbonStore.fetchActivities()
           }, 100)
-          
+
           set({
             user,
             token,
             isAuthenticated: true,
             loading: false
           })
-          
+
           return { success: true }
         } catch (error) {
           set({
@@ -102,24 +100,21 @@ export const useAuthStore = create(
         const token = localStorage.getItem('token')
         if (!token) {
           set({ isAuthenticated: false })
-          // Clear carbon data when no token exists
           useCarbonStore.getState().resetData()
           return false
         }
         
         try {
-          const response = await api.getCurrentUser()
-          const user = response.data.user
-          
-          // Set current user in carbon store and force refresh
+          // ✅ Directly get user object (not response.data.user)
+          const { user } = await api.getCurrentUser()
+
           const carbonStore = useCarbonStore.getState()
           carbonStore.setCurrentUser(user._id)
-          // Force a small delay to ensure data is cleared before fetching
           setTimeout(() => {
             carbonStore.fetchStats()
             carbonStore.fetchActivities()
           }, 100)
-          
+
           set({
             user,
             token,
@@ -128,7 +123,6 @@ export const useAuthStore = create(
           return true
         } catch (error) {
           localStorage.removeItem('token')
-          // Clear carbon data when token is invalid
           useCarbonStore.getState().resetData()
           set({
             user: null,
@@ -152,4 +146,4 @@ export const useAuthStore = create(
       })
     }
   )
-) 
+)
