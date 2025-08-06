@@ -47,6 +47,19 @@ mongoose.connect(process.env.MONGODB_URI, {
   process.exit(1);
 });
 
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK', 
+    message: 'Carbon Tracker API is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Default root route
+app.get('/', (req, res) => {
+  res.send("✅ Carbon Tracker API is live");
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/carbon', carbonRoutes);
