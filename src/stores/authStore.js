@@ -15,14 +15,24 @@ export const useAuthStore = create(
       login: async (credentials) => {
         set({ loading: true, error: null })
         try {
-          // ✅ Directly get response object (not response.data)
-          const { user, token } = await api.login(credentials)
+          const response = await api.login(credentials)
+          console.log("🔍 Login Response:", response)
+
+          // ✅ Handle both possible response structures
+          const user = response.user || response.data?.user
+          const token = response.token || response.data?.token
+
+          if (!user || !token) {
+            throw new Error("Invalid login response from server")
+          }
 
           localStorage.setItem('token', token)
 
-          // Set current user in carbon store and force refresh
           const carbonStore = useCarbonStore.getState()
-          carbonStore.setCurrentUser(user._id)
+          if (user._id) {
+            carbonStore.setCurrentUser(user._id)
+          }
+
           setTimeout(() => {
             carbonStore.fetchStats()
             carbonStore.fetchActivities()
@@ -37,6 +47,7 @@ export const useAuthStore = create(
 
           return { success: true }
         } catch (error) {
+          console.error("❌ Login Error:", error)
           set({
             error: error.message,
             loading: false
@@ -48,14 +59,24 @@ export const useAuthStore = create(
       register: async (userData) => {
         set({ loading: true, error: null })
         try {
-          // ✅ Directly get response object (not response.data)
-          const { user, token } = await api.register(userData)
+          const response = await api.register(userData)
+          console.log("🔍 Register Response:", response)
+
+          // ✅ Handle both possible response structures
+          const user = response.user || response.data?.user
+          const token = response.token || response.data?.token
+
+          if (!user || !token) {
+            throw new Error("Invalid register response from server")
+          }
 
           localStorage.setItem('token', token)
 
-          // Set current user in carbon store and force refresh
           const carbonStore = useCarbonStore.getState()
-          carbonStore.setCurrentUser(user._id)
+          if (user._id) {
+            carbonStore.setCurrentUser(user._id)
+          }
+
           setTimeout(() => {
             carbonStore.fetchStats()
             carbonStore.fetchActivities()
@@ -70,6 +91,7 @@ export const useAuthStore = create(
 
           return { success: true }
         } catch (error) {
+          console.error("❌ Register Error:", error)
           set({
             error: error.message,
             loading: false
@@ -80,7 +102,6 @@ export const useAuthStore = create(
       
       logout: () => {
         localStorage.removeItem('token')
-        // Clear carbon data on logout
         useCarbonStore.getState().resetData()
         set({
           user: null,
@@ -105,11 +126,21 @@ export const useAuthStore = create(
         }
         
         try {
-          // ✅ Directly get user object (not response.data.user)
-          const { user } = await api.getCurrentUser()
+          const response = await api.getCurrentUser()
+          console.log("🔍 CheckAuth Response:", response)
+
+          // ✅ Handle both possible response structures
+          const user = response.user || response.data?.user
+
+          if (!user) {
+            throw new Error("Invalid user data from server")
+          }
 
           const carbonStore = useCarbonStore.getState()
-          carbonStore.setCurrentUser(user._id)
+          if (user._id) {
+            carbonStore.setCurrentUser(user._id)
+          }
+
           setTimeout(() => {
             carbonStore.fetchStats()
             carbonStore.fetchActivities()
@@ -122,6 +153,7 @@ export const useAuthStore = create(
           })
           return true
         } catch (error) {
+          console.error("❌ CheckAuth Error:", error)
           localStorage.removeItem('token')
           useCarbonStore.getState().resetData()
           set({
