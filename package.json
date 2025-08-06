@@ -4,6 +4,7 @@
   "description": "Personal Carbon Footprint Tracker with rewards and rankings",
   "main": "index.js",
   "scripts": {
+    "start": "node server.js",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
